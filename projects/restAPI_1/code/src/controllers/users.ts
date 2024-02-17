@@ -1,0 +1,63 @@
+import express from "express";
+import { deleteUserById, getUserById, getUsers } from "../db/users";
+
+export const getAllUsers = async (req: express.Request, res: express.Response)=>{
+    try {
+        const users = await getUsers();
+        return res.status(200).json(users);
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(400);
+    }
+};
+
+export const deleteUser = async(req: express.Request, res: express.Response)=>{
+    try {
+        const {id}=req.params;
+        if (!id){
+            console.log('ID is Missing')
+            return res.sendStatus(400);
+        }
+ 
+        const existingUser=getUserById(id);
+
+        if (!existingUser){
+            console.log(`User does not exist for id: "${id}"`)
+            return res.sendStatus(400);
+        }
+
+        const deletedUser= await deleteUserById(id);
+        return res.status(200).json(deletedUser);
+
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(400);
+    }
+}
+
+export const updateUser = async(req: express.Request, res: express.Response)=>{
+    try {
+        const {id}=req.params;
+        const {username}=req.body;
+
+        if (!username){
+            console.log("Username is Missing")
+            return res.sendStatus(400);
+        }
+        
+        const user=await getUserById(id);
+
+        if (!user){
+            console.log(`User does not exist for id: "${id}"`)
+            return res.sendStatus(400);
+        }
+
+        user.username=username;
+        await user.save();
+        return res.status(200).json(user).end();
+
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(400);
+    }
+}
